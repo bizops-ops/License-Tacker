@@ -33,7 +33,7 @@ const{useState,useMemo,useEffect,Fragment}=React;
 function LS(k,fb){try{const v=localStorage.getItem("lt_"+k);return v?JSON.parse(v):fb;}catch(e){return fb;}}
 function SV(k,v){try{localStorage.setItem("lt_"+k,JSON.stringify(v));}catch(e){}}
 
-const L=[
+const DEF_L=[
   {k:"tl",l:"Trade License",i:"📋",bg:"linear-gradient(135deg,#EEF2FF,#E0E7FF)",f:"#EEF2FF",b:"#C7D2FE",c:"#4F46E5"},
   {k:"fssai",l:"FSSAI",i:"🍽️",bg:"linear-gradient(135deg,#F0FDF4,#DCFCE7)",f:"#F0FDF4",b:"#BBF7D0",c:"#16A34A"},
   {k:"se",l:"Shop & Estb.",i:"🏪",bg:"linear-gradient(135deg,#FFF7ED,#FFEDD5)",f:"#FFF7ED",b:"#FED7AA",c:"#EA580C"},
@@ -42,6 +42,9 @@ const L=[
   {k:"fire",l:"Fire NOC",i:"🔥",bg:"linear-gradient(135deg,#FFF1F2,#FFE4E6)",f:"#FFF1F2",b:"#FECDD3",c:"#E11D48"},
   {k:"ptec",l:"PTEC",i:"💰",bg:"linear-gradient(135deg,#ECFEFF,#CFFAFE)",f:"#ECFEFF",b:"#A5F3FC",c:"#0891B2"},
 ];
+
+const EXTRA_COLORS=["#0D9488","#9333EA","#C026D3","#DB2777","#CA8A04","#65A30D","#0284C7","#6D28D9","#BE185D","#B45309"];
+const EXTRA_ICONS=["📑","📝","🏛️","🔑","📜","🪪","🛡️","⚖️","🏗️","📌"];
 
 const W=[
   {k:"dc",l:"Documents Collected",t:"ck",g:"📋 Documents"},{k:"dv",l:"Documents Verified",t:"ck",g:"📋 Documents"},
@@ -112,6 +115,7 @@ const GD="https://drive.google.com/drive/folders/YOUR_FOLDER_ID";
 const US={"Bizops@2026":"Zippee@1234","admin":"admin123"};
 
 function mLD(){const d={};ST.forEach(s=>{d[s.id]={};s.lics.forEach(l=>{const w={};W.forEach(f=>{w[f.k]=f.t==="ck"?false:"";});d[s.id][l]=w;});});return d;}
+function mLDentry(){const w={};W.forEach(f=>{w[f.k]=f.t==="ck"?false:"";});return w;}
 function pc(d){if(!d)return 0;let f=0;W.forEach(w=>{const v=d[w.k];if(w.t==="ck"){if(v)f++;}else if(v&&String(v).trim())f++;});return Math.round(f/W.length*100);}
 function gE(d){if(!d||!d.idt||!d.val||d.idt==="NA")return null;try{const x=new Date(d.idt);if(isNaN(x))return null;x.setMonth(x.getMonth()+Number(d.val));return x;}catch(e){return null;}}
 function dL(e){if(!e)return null;return Math.ceil((e-new Date())/864e5);}
@@ -164,6 +168,25 @@ function App(){
 }
 
 function M({u,lo}){
+  const[customL,setCustomL]=useState(()=>LS("cL",[]));
+  const L=useMemo(()=>[...DEF_L,...customL],[customL]);
+  const[addLicModal,setAddLicModal]=useState(false);
+  const[newLicName,setNewLicName]=useState("");
+
+  const addNewLicense=()=>{
+    if(!newLicName.trim())return;
+    const key="custom_"+Date.now();
+    const idx=customL.length;
+    const col=EXTRA_COLORS[idx%EXTRA_COLORS.length];
+    const ico=EXTRA_ICONS[idx%EXTRA_ICONS.length];
+    const newL={k:key,l:newLicName.trim(),i:ico,bg:"linear-gradient(135deg,"+col+"15,"+col+"25)",f:col+"15",b:col+"33",c:col};
+    setCustomL(p=>[...p,newL]);
+    setNewLicName("");
+    setAddLicModal(false);
+  };
+
+  useEffect(()=>{SV("cL",customL);},[customL]);
+
   const[st,setSt]=useState(()=>LS("st",ST));
   const[ld,setLd]=useState(()=>LS("ld",mLD()));
   const[fe,setFe]=useState(()=>LS("fe",FI));
@@ -336,7 +359,40 @@ function M({u,lo}){
     <div style={{padding:"14px 24px"}} className="fi">
       {(eS.e>0||eS.c>0)&&<div style={{background:"#FEF2F2",border:"1.5px solid #FECACA",borderRadius:14,padding:"12px 18px",marginBottom:14,display:"flex",alignItems:"center",gap:12,flexWrap:"wrap"}}><span style={{fontSize:20}}>⚠️</span><div style={{flex:1}}><strong style={{color:"#DC2626"}}>Expiry Alert:</strong> <span style={{color:"#6B7280",fontSize:13}}>{eS.e} expired, {eS.c} within 30d</span></div><button onClick={()=>go("expiry")} style={{background:"#DC2626",color:"#fff",border:"none",padding:"6px 16px",borderRadius:8,fontWeight:700,fontSize:12}}>View →</button></div>}
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}><div><h2 style={{fontSize:22,fontWeight:800}}>{store?store.name:"All Stores"}</h2><p style={{color:"#6B7280",fontSize:13}}>{store?store.city+" · "+store.brand:tg.length+" stores"}</p></div><div style={{textAlign:"right"}}><div style={{fontSize:34,fontWeight:900,color:tp===100?"#16A34A":tp>=50?"#4F46E5":"#EF4444"}}>{tp}%</div><div style={{fontSize:11,color:"#9CA3AF"}}>Compliance</div></div></div>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(180px,1fr))",gap:12,marginBottom:20}}>{L.filter(l=>ss[l.k]>=0).map(l=>{const v=ss[l.k];return<div key={l.k} onClick={()=>{if(store)setLk(l.k);}} style={{...s.cd,background:l.bg,border:"1.5px solid "+l.b,cursor:store?"pointer":"default",padding:16,borderRadius:16,transition:"all .2s"}}><div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}><span style={{fontSize:22}}>{l.i}</span><span style={{fontSize:13,fontWeight:700,color:"#374151"}}>{l.l}</span></div><div style={{fontSize:30,fontWeight:900,color:l.c,marginBottom:6}}>{v}%</div><Bar v={v} c={l.c} h={8}/>{store&&<div style={{fontSize:10,color:"#9CA3AF",marginTop:8}}>Click →</div>}</div>;})}</div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(180px,1fr))",gap:12,marginBottom:20}}>{L.map(l=>{const v=ss[l.k]>=0?ss[l.k]:0;const hasStores=ss[l.k]>=0;return<div key={l.k} onClick={()=>{if(store)setLk(l.k);}} style={{...s.cd,background:l.bg,border:"1.5px solid "+l.b,cursor:store?"pointer":"default",padding:16,borderRadius:16,transition:"all .2s",opacity:hasStores?1:.7}}><div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}><span style={{fontSize:22}}>{l.i}</span><span style={{fontSize:13,fontWeight:700,color:"#374151"}}>{l.l}</span></div><div style={{fontSize:30,fontWeight:900,color:l.c,marginBottom:6}}>{v}%</div><Bar v={v} c={l.c} h={8}/>{store&&hasStores&&<div style={{fontSize:10,color:"#9CA3AF",marginTop:8}}>Click →</div>}{!hasStores&&<div style={{fontSize:10,color:"#D1D5DB",marginTop:8}}>No stores assigned</div>}</div>;})}
+        {/* Add License Button */}
+        <div onClick={()=>setAddLicModal(true)} style={{...s.cd,border:"2px dashed #D1D5DB",cursor:"pointer",padding:16,borderRadius:16,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:140,transition:"all .2s",background:"#FAFBFC"}} onMouseEnter={e=>{e.currentTarget.style.borderColor="#4F46E5";e.currentTarget.style.background="#EEF2FF";}} onMouseLeave={e=>{e.currentTarget.style.borderColor="#D1D5DB";e.currentTarget.style.background="#FAFBFC";}}>
+          <div style={{width:48,height:48,borderRadius:14,background:"linear-gradient(135deg,#4F46E5,#6366F1)",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:10}}><span style={{fontSize:24,color:"#fff"}}>+</span></div>
+          <span style={{fontSize:12,fontWeight:700,color:"#6B7280"}}>Add License</span>
+        </div>
+      </div>
+
+      {/* Add License Modal */}
+      {addLicModal&&<div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,.5)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:100,padding:20}} onClick={()=>{setAddLicModal(false);setNewLicName("");}}>
+        <div style={{background:"#fff",borderRadius:20,padding:32,maxWidth:420,width:"100%",boxShadow:"0 20px 60px rgba(0,0,0,.2)"}} onClick={e=>e.stopPropagation()} className="fi">
+          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:20}}>
+            <div style={{width:44,height:44,borderRadius:12,background:"linear-gradient(135deg,#4F46E5,#6366F1)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,color:"#fff"}}>+</div>
+            <h3 style={{fontSize:18,fontWeight:800}}>Add New License Type</h3>
+            <button onClick={()=>{setAddLicModal(false);setNewLicName("");}} style={{marginLeft:"auto",background:"#F3F4F6",border:"none",width:36,height:36,borderRadius:10,fontSize:18,display:"flex",alignItems:"center",justifyContent:"center",color:"#6B7280"}}>×</button>
+          </div>
+          <p style={{color:"#6B7280",fontSize:13,marginBottom:16}}>This license will be added across all sections — Dashboard, Expiry Tracker, Store Master, and Fees.</p>
+          <div style={{marginBottom:16}}>
+            <label style={{fontSize:12,fontWeight:700,color:"#374151",display:"block",marginBottom:5}}>License Name *</label>
+            <input value={newLicName} onChange={e=>setNewLicName(e.target.value)} placeholder="e.g. GST Registration, Labour License, Pollution NOC..." style={{...s.i}} onKeyDown={e=>e.key==="Enter"&&addNewLicense()}/>
+          </div>
+          {newLicName.trim()&&<div style={{background:"#F0FDF4",border:"1.5px solid #BBF7D0",borderRadius:10,padding:"10px 14px",marginBottom:16,fontSize:13}}>
+            <strong>Preview:</strong> {EXTRA_ICONS[customL.length%EXTRA_ICONS.length]} <strong style={{color:EXTRA_COLORS[customL.length%EXTRA_COLORS.length]}}>{newLicName.trim()}</strong> will be added as a new license type.
+          </div>}
+          {customL.length>0&&<div style={{marginBottom:16}}>
+            <h4 style={{fontSize:12,fontWeight:700,color:"#6B7280",marginBottom:6}}>Custom licenses added ({customL.length})</h4>
+            <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>{customL.map(cl=><span key={cl.k} style={{background:cl.f,color:cl.c,padding:"3px 10px",borderRadius:20,fontSize:11,fontWeight:700}}>{cl.i} {cl.l}</span>)}</div>
+          </div>}
+          <div style={{display:"flex",gap:10}}>
+            <button onClick={addNewLicense} disabled={!newLicName.trim()} style={{...s.bt,flex:1,padding:12,opacity:newLicName.trim()?1:.4,cursor:newLicName.trim()?"pointer":"not-allowed"}}>Add License</button>
+            <button onClick={()=>{setAddLicModal(false);setNewLicName("");}} style={{background:"#F3F4F6",color:"#6B7280",border:"none",padding:"12px 24px",borderRadius:10,fontWeight:700,fontSize:14}}>Cancel</button>
+          </div>
+        </div>
+      </div>}
       {!store&&<div style={{...s.cd,padding:0,overflow:"auto",borderRadius:14}}><table style={{width:"100%",borderCollapse:"collapse"}}><thead><tr>{["Store","City","Brand","Progress"].map(h=><th key={h} style={s.th}>{h}</th>)}</tr></thead><tbody>{fl.map(x=>{const avg=x.lics.length?Math.round(x.lics.reduce((a,l)=>a+pc(ld[x.id]?.[l]),0)/x.lics.length):0;return<tr key={x.id} className="hr" onClick={()=>{setSid(x.id);setQ(x.name);}} style={{cursor:"pointer"}}><td style={{...s.td,fontWeight:700}}>{x.name}</td><td style={{...s.td,color:"#6B7280"}}>{x.city}</td><td style={s.td}><Bg t={x.brand}/></td><td style={s.td}><div style={{display:"flex",alignItems:"center",gap:6}}><div style={{width:70}}><Bar v={avg}/></div><span style={{fontSize:12,fontWeight:800}}>{avg}%</span></div></td></tr>;})}</tbody></table></div>}
       {store&&lk&&(()=>{const l=L.find(x=>x.k===lk);const d=ld[sid]?.[lk]||{};const pr=pc(d);const ex=gE(d);const dy=dL(ex);const gs=[...new Set(W.map(w=>w.g))];const lc=iC(sid,lk);const hk=sid+"_"+lk;const ht=hi[hk]||[];
         return<div style={{marginTop:18}}>
