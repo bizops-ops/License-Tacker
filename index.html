@@ -428,7 +428,7 @@ function M({u,lo}){
                     :w.t==="sl"?<select value={d[w.k]||""} onChange={e=>{if(!di)up(sid,lk,w.k,e.target.value);}} disabled={di} style={{...s.i,maxWidth:200,fontSize:12,opacity:di?.7:1}}><option value="">Select...</option>{w.o.map(o=><option key={o}>{o}</option>)}</select>
                     :w.t==="ta"?<textarea value={d[w.k]||""} onChange={e=>{if(!di)up(sid,lk,w.k,e.target.value);}} readOnly={di} style={{...s.i,minHeight:36,resize:"vertical",fontSize:12,opacity:di?.7:1}} placeholder="Enter..."/>
                     :w.t==="ur"?<div style={{display:"flex",gap:6}}><input value={d[w.k]||""} onChange={e=>{if(!di)up(sid,lk,w.k,e.target.value);}} readOnly={di} style={{...s.i,fontSize:12,opacity:di?.7:1}} placeholder="G-Drive link..."/>{d[w.k]&&<a href={d[w.k]} target="_blank" rel="noopener noreferrer" style={{background:"#16A34A",color:"#fff",padding:"6px 12px",borderRadius:6,fontSize:11,fontWeight:700,textDecoration:"none",whiteSpace:"nowrap"}}>Open↗</a>}</div>
-                    :<input type={w.t==="nm"?"number":"text"} value={d[w.k]||""} onChange={e=>{if(!di)up(sid,lk,w.k,e.target.value);}} readOnly={di} style={{...s.i,maxWidth:w.t==="dt"?170:w.k==="an"?320:120,fontSize:12,opacity:di?.7:1}} placeholder={w.k==="an"?"e.g. APP-2025-123456":""}/>}
+                    :<input type={w.t==="nm"?"number":"text"} value={d[w.k]||""} onChange={e=>{if(!di)up(sid,lk,w.k,e.target.value);}} readOnly={di} style={{...s.i,maxWidth:w.t==="dt"?170:w.k==="an"?520:120,fontSize:12,opacity:di?.7:1}} placeholder={w.k==="an"?"e.g. APP-2025-123456":""}/>}
                   </div>
                 </div>;})}
             </div></div>)}
