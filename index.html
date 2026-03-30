@@ -53,9 +53,9 @@ const W=[
   {k:"vs",l:"Vendor Response",t:"sl",o:["Awaiting","Applied","Responded","Needs More Docs","Rejected"],g:"🏢 Vendor"},
   {k:"ad",l:"Additional Docs Needed",t:"ta",g:"🏢 Vendor"},
   {k:"ao",l:"Applied On",t:"dt",g:"📝 Application"},
+  {k:"an",l:"Application No.",t:"tx",g:"📝 Application"},
   {k:"td",l:"Tentative Date",t:"dt",g:"📝 Application"},
-  {k:"pd",l:"Payment Done",t:"ck",g:"💳 Payment"},{k:"amt",l:"Amount (₹)",t:"nm",g:"💳 Payment"},
-  {k:"pdt",l:"Payment Date",t:"dt",g:"💳 Payment"},{k:"inv",l:"Invoice No.",t:"tx",g:"💳 Payment"},
+  {k:"amt",l:"Amount (₹)",t:"nm",g:"💰 Fee Reference"},
   {k:"idt",l:"Issue Date",t:"dt",g:"✅ Status"},{k:"rec",l:"License Received",t:"ck",g:"✅ Status"},
   {k:"val",l:"Validity (months)",t:"nm",g:"✅ Status"},
   {k:"act",l:"Action Taken",t:"ta",g:"✅ Status"},{k:"rem",l:"Remarks",t:"ta",g:"✅ Status"},
@@ -339,9 +339,8 @@ function M({u,lo}){
     </div>
   </div></div>;}
 
-  // DASHBOARD — FIX: include ALL license keys (including custom) when computing per-license KPI
+  // DASHBOARD
   const tg=sid?[store]:fl;const ss={};L.forEach(l=>{let t=0,v=0;tg.forEach(x=>{const inLics=x.lics.includes(l.k);const hasData=ld[x.id]?.[l.k]&&pc(ld[x.id][l.k])>0;if(inLics||hasData){t++;v+=pc(ld[x.id]?.[l.k]);}});ss[l.k]=t>0?Math.round(v/t):-1;});
-  /* Overall compliance: for single store, only count licenses assigned to it or with data */
   let tp=0;
   if(store){
     const relL=L.filter(l=>store.lics.includes(l.k)||(ld[store.id]?.[l.k]&&pc(ld[store.id][l.k])>0));
@@ -368,24 +367,20 @@ function M({u,lo}){
       {(eS.e>0||eS.c>0)&&<div style={{background:"#FEF2F2",border:"1.5px solid #FECACA",borderRadius:14,padding:"12px 18px",marginBottom:14,display:"flex",alignItems:"center",gap:12,flexWrap:"wrap"}}><span style={{fontSize:20}}>⚠️</span><div style={{flex:1}}><strong style={{color:"#DC2626"}}>Expiry Alert:</strong> <span style={{color:"#6B7280",fontSize:13}}>{eS.e} expired, {eS.c} within 30d</span></div><button onClick={()=>go("expiry")} style={{background:"#DC2626",color:"#fff",border:"none",padding:"6px 16px",borderRadius:8,fontWeight:700,fontSize:12}}>View →</button></div>}
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}><div><h2 style={{fontSize:22,fontWeight:800}}>{store?store.name:"All Stores"}</h2><p style={{color:"#6B7280",fontSize:13}}>{store?store.city+" · "+store.brand:tg.length+" stores"}</p></div><div style={{textAlign:"right"}}><div style={{fontSize:34,fontWeight:900,color:tp===100?"#16A34A":tp>=50?"#4F46E5":"#EF4444"}}>{tp}%</div><div style={{fontSize:11,color:"#9CA3AF"}}>Compliance</div></div></div>
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(180px,1fr))",gap:12,marginBottom:20}}>{L.map(l=>{
-        /* FIX: For single store view, compute KPI directly from the store's license data */
         const hasStores=ss[l.k]>=0;
         const hasStoreData=store&&ld[store.id]?.[l.k]&&pc(ld[store.id][l.k])>0;
         let v=ss[l.k]>=0?ss[l.k]:0;
-        /* If single store selected, recalculate from ld directly for accuracy */
         if(store&&(store.lics.includes(l.k)||hasStoreData)){
           v=pc(ld[store.id]?.[l.k]);
         }
         const showCard=hasStores||hasStoreData;
         return<div key={l.k} onClick={()=>{if(store)setLk(l.k);}} style={{...s.cd,background:l.bg,border:"1.5px solid "+l.b,cursor:store?"pointer":"default",padding:16,borderRadius:16,transition:"all .2s",opacity:showCard||store?1:.7}}><div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}><span style={{fontSize:22}}>{l.i}</span><span style={{fontSize:13,fontWeight:700,color:"#374151"}}>{l.l}</span></div><div style={{fontSize:30,fontWeight:900,color:l.c,marginBottom:6}}>{v}%</div><Bar v={v} c={l.c} h={8}/>{store&&(showCard||store.lics.includes(l.k))&&<div style={{fontSize:10,color:"#9CA3AF",marginTop:8}}>Click →</div>}{!showCard&&!store&&<div style={{fontSize:10,color:"#D1D5DB",marginTop:8}}>No stores assigned</div>}</div>;})}
-        {/* Add License Button */}
         <div onClick={()=>setAddLicModal(true)} style={{...s.cd,border:"2px dashed #D1D5DB",cursor:"pointer",padding:16,borderRadius:16,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:140,transition:"all .2s",background:"#FAFBFC"}} onMouseEnter={e=>{e.currentTarget.style.borderColor="#4F46E5";e.currentTarget.style.background="#EEF2FF";}} onMouseLeave={e=>{e.currentTarget.style.borderColor="#D1D5DB";e.currentTarget.style.background="#FAFBFC";}}>
           <div style={{width:48,height:48,borderRadius:14,background:"linear-gradient(135deg,#4F46E5,#6366F1)",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:10}}><span style={{fontSize:24,color:"#fff"}}>+</span></div>
           <span style={{fontSize:12,fontWeight:700,color:"#6B7280"}}>Add License</span>
         </div>
       </div>
 
-      {/* Add License Modal */}
       {addLicModal&&<div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"rgba(0,0,0,.5)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:100,padding:20}} onClick={()=>{setAddLicModal(false);setNewLicName("");}}>
         <div style={{background:"#fff",borderRadius:20,padding:32,maxWidth:420,width:"100%",boxShadow:"0 20px 60px rgba(0,0,0,.2)"}} onClick={e=>e.stopPropagation()} className="fi">
           <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:20}}>
